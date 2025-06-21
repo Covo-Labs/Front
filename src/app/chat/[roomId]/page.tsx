@@ -358,30 +358,40 @@ export default function ChatPage({ params }: { params: Promise<{ roomId: string 
     const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5001';
     // Remove trailing slash to prevent double slashes in Socket.IO connection
     const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+    console.log('Connecting to WebSocket at:', cleanBaseUrl);
+    
     const newSocket = io(cleanBaseUrl, {
       withCredentials: true,
       transports: ['websocket', 'polling'],
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
+      timeout: 20000,
+      forceNew: true,
       extraHeaders: {
         Authorization: `Bearer ${token}`
       }
     });
 
     newSocket.on('connect', () => {
-      console.log('Connected to WebSocket');
+      console.log('Connected to WebSocket successfully');
+      console.log('Socket ID:', newSocket.id);
       newSocket.emit('join_room', { room_id: roomId });
     });
 
     newSocket.on('connect_error', (error) => {
       console.error('WebSocket connection error:', error);
+      console.error('Error details:', {
+        message: error.message,
+        name: error.name
+      });
     });
 
     newSocket.on('disconnect', (reason) => {
-      console.log('Disconnected:', reason);
+      console.log('Disconnected from WebSocket:', reason);
       if (reason === 'io server disconnect') {
         // Server initiated disconnect, try to reconnect
+        console.log('Attempting to reconnect...');
         newSocket.connect();
       }
     });
@@ -389,6 +399,10 @@ export default function ChatPage({ params }: { params: Promise<{ roomId: string 
     newSocket.on('new_message', (message: Message) => {
       console.log('Received new message:', message);
       setMessages(prev => [...prev, message]);
+    });
+
+    newSocket.on('error', (error) => {
+      console.error('Socket error:', error);
     });
 
     return () => {
