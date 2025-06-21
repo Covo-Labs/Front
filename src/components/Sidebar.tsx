@@ -14,7 +14,6 @@ interface Room {
     created_at: string;
   };
 }
-
 interface Invite {
   id: string;
   room_id: string;
