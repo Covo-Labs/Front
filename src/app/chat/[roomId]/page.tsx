@@ -361,13 +361,15 @@ export default function ChatPage({ params }: { params: Promise<{ roomId: string 
     console.log('Connecting to WebSocket at:', cleanBaseUrl);
     
     const newSocket = io(cleanBaseUrl, {
-      withCredentials: true,
-      transports: ['websocket', 'polling'],
+      withCredentials: false, // Changed to false for production
+      transports: ['polling', 'websocket'], // Try polling first, then upgrade to websocket
       reconnection: true,
-      reconnectionAttempts: 5,
+      reconnectionAttempts: 10,
       reconnectionDelay: 1000,
-      timeout: 20000,
+      reconnectionDelayMax: 5000,
+      timeout: 60000, // Increased timeout
       forceNew: true,
+      autoConnect: true,
       extraHeaders: {
         Authorization: `Bearer ${token}`
       }
@@ -376,6 +378,7 @@ export default function ChatPage({ params }: { params: Promise<{ roomId: string 
     newSocket.on('connect', () => {
       console.log('Connected to WebSocket successfully');
       console.log('Socket ID:', newSocket.id);
+      console.log('Transport:', newSocket.io.engine.transport.name);
       newSocket.emit('join_room', { room_id: roomId });
     });
 
@@ -394,6 +397,15 @@ export default function ChatPage({ params }: { params: Promise<{ roomId: string 
         console.log('Attempting to reconnect...');
         newSocket.connect();
       }
+    });
+
+    newSocket.on('reconnect', (attemptNumber) => {
+      console.log('Reconnected after', attemptNumber, 'attempts');
+      newSocket.emit('join_room', { room_id: roomId });
+    });
+
+    newSocket.on('reconnect_error', (error) => {
+      console.error('Reconnection error:', error);
     });
 
     newSocket.on('new_message', (message: Message) => {
