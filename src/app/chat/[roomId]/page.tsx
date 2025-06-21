@@ -355,7 +355,10 @@ export default function ChatPage({ params }: { params: Promise<{ roomId: string 
     fetchInvites();
 
     const token = localStorage.getItem('token');
-    const newSocket = io(process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5001', {
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5001';
+    // Remove trailing slash to prevent double slashes in Socket.IO connection
+    const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+    const newSocket = io(cleanBaseUrl, {
       withCredentials: true,
       transports: ['websocket', 'polling'],
       reconnection: true,
