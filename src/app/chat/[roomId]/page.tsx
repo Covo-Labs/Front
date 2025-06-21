@@ -362,17 +362,14 @@ export default function ChatPage({ params }: { params: Promise<{ roomId: string 
     
     const newSocket = io(cleanBaseUrl, {
       withCredentials: false, // Changed to false for production
-      transports: ['polling', 'websocket'], // Try polling first, then upgrade to websocket
+      transports: ['websocket'], // Force only websocket transport
       reconnection: true,
       reconnectionAttempts: 10,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
       timeout: 60000, // Increased timeout
       forceNew: true,
-      autoConnect: true,
-      extraHeaders: {
-        Authorization: `Bearer ${token}`
-      }
+      autoConnect: true
     });
 
     newSocket.on('connect', () => {
