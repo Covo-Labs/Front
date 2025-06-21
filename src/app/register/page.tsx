@@ -37,7 +37,7 @@ export default function RegisterPage() {
       } else {
         setError(data.error || 'Registration failed');
       }
-    } catch (err) {
+    } catch {
       setError('Unable to connect to the server');
     }
   };

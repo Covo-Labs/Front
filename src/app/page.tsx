@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { theme } from '@/styles/theme';
 
 export default function HomePage() {
@@ -19,7 +20,7 @@ export default function HomePage() {
   return (
     <div className="flex h-screen items-center justify-center" style={{ backgroundColor: theme.colors.background.app }}>
       <div className="text-center transition-opacity duration-300 opacity-100">
-        <img src="/loading.svg" alt="Loading" className="h-12 w-12 mx-auto" />
+        <Image src="/loading.svg" alt="Loading" width={48} height={48} className="h-12 w-12 mx-auto" />
         <p className="mt-4 text-gray-600">Redirecting...</p>
         </div>
     </div>

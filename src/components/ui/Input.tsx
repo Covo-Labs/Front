@@ -1,4 +1,3 @@
-import { theme } from '@/styles/theme';
 import { InputHTMLAttributes } from 'react';
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {

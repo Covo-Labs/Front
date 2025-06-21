@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import Image from 'next/image';
 import { theme, getHeadingStyle } from '@/styles/theme';
 
 interface Room {
@@ -25,10 +26,16 @@ interface Invite {
   };
 }
 
+interface User {
+  id: string;
+  username: string;
+  email: string;
+}
+
 interface SidebarProps {
   rooms: Room[];
   invites: Invite[];
-  user: any;
+  user: User | null;
   onAcceptInvite: (inviteId: string) => void;
   onLogout: () => void;
   onShowCreateModal: () => void;
@@ -139,7 +146,7 @@ export function Sidebar({ rooms, invites, user, onAcceptInvite, onLogout, onShow
           {/* Conversations list */}
           {loading ? (
             <div className="flex items-center justify-center py-8 transition-opacity duration-300">
-              <img src="/loading.svg" alt="Loading" className="h-8 w-8" />
+              <Image src="/loading.svg" alt="Loading" width={32} height={32} className="h-8 w-8" />
             </div>
           ) : (
             <div className="transition-opacity duration-300">

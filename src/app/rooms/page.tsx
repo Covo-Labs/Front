@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { Sidebar } from '@/components/Sidebar';
 import { ConversationOptionsModal } from '@/components/ConversationOptionsModal';
 import { theme, getHeadingStyle } from '@/styles/theme';
 import { buildApiUrl, API_ENDPOINTS } from '@/lib/api';
+import Image from 'next/image';
 
 interface Room {
   id: string;
@@ -31,6 +31,12 @@ interface Invite {
   };
 }
 
+interface User {
+  id: string;
+  username: string;
+  email: string;
+}
+
 export default function ConversationsPage() {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [invites, setInvites] = useState<Invite[]>([]);
@@ -40,7 +46,7 @@ export default function ConversationsPage() {
     is_private: true
   });
   const [error, setError] = useState('');
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const router = useRouter();
   const [firstMessage, setFirstMessage] = useState('');
   const [creating, setCreating] = useState(false);
@@ -52,43 +58,12 @@ export default function ConversationsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [roomsLoading, setRoomsLoading] = useState(true);
 
-  useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (!storedUser) {
-      router.push('/login');
-      return;
-    }
-    setUser(JSON.parse(storedUser));
-    fetchRooms();
-    fetchInvites();
-  }, [router]);
-
-  // Handle responsive state
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth < 768) {
-        setSidebarOpen(false);
-      } else {
-        // On desktop, keep the current state (don't auto-open)
-        // This allows users to close it and keep it closed
-      }
-    };
-
-    // Set initial state based on screen size
-    if (window.innerWidth < 768) {
-      setSidebarOpen(false);
-    }
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
   const toggleSidebar = () => {
     console.log('Toggle sidebar called, current state:', sidebarOpen);
     setSidebarOpen(!sidebarOpen);
   };
 
-  const fetchRooms = async () => {
+  const fetchRooms = useCallback(async () => {
     try {
       setRoomsLoading(true);
       const token = localStorage.getItem('token');
@@ -110,12 +85,43 @@ export default function ConversationsPage() {
       } else {
         router.push('/login');
       }
-    } catch (err) {
+    } catch {
       setError('Unable to fetch conversations');
     } finally {
       setRoomsLoading(false);
     }
-  };
+  }, [router]);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (!storedUser) {
+      router.push('/login');
+      return;
+    }
+    setUser(JSON.parse(storedUser));
+    fetchRooms();
+    fetchInvites();
+  }, [router, fetchRooms]);
+
+  // Handle responsive state
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setSidebarOpen(false);
+      } else {
+        // On desktop, keep the current state (don't auto-open)
+        // This allows users to close it and keep it closed
+      }
+    };
+
+    // Set initial state based on screen size
+    if (window.innerWidth < 768) {
+      setSidebarOpen(false);
+    }
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const fetchInvites = async () => {
     try {
@@ -131,7 +137,7 @@ export default function ConversationsPage() {
         const data = await response.json();
         setInvites(data);
       }
-    } catch (err) {
+    } catch {
       setError('Unable to fetch invitations');
     }
   };
@@ -155,7 +161,7 @@ export default function ConversationsPage() {
         const data = await response.json();
         setError(data.error || 'Failed to accept invitation');
       }
-    } catch (err) {
+    } catch {
       setError('Unable to accept invitation');
     }
   };
@@ -184,7 +190,7 @@ export default function ConversationsPage() {
         const data = await response.json();
         setError(data.error || 'Failed to create conversation');
       }
-    } catch (err) {
+    } catch {
       setError('Unable to create conversation');
     }
   };
@@ -234,7 +240,7 @@ export default function ConversationsPage() {
         setError(data.error || 'Failed to create conversation');
         setCreating(false);
       }
-    } catch (err) {
+    } catch {
       setError('Unable to create conversation');
       setCreating(false);
     }
@@ -273,7 +279,7 @@ export default function ConversationsPage() {
         const data = await response.json();
         setOptionsError(data.error || 'Failed to rename conversation');
       }
-    } catch (err) {
+    } catch {
       setOptionsError('Unable to rename conversation');
     }
     setOptionsLoading(false);
@@ -299,7 +305,7 @@ export default function ConversationsPage() {
         const data = await response.json();
         setOptionsError(data.error || 'Failed to delete conversation');
       }
-    } catch (err) {
+    } catch {
       setOptionsError('Unable to delete conversation');
     }
     setOptionsLoading(false);
@@ -338,9 +344,11 @@ export default function ConversationsPage() {
         {/* Centered form */}
         <form onSubmit={handleStartConversation} className="w-full max-w-lg mx-auto flex flex-col items-center relative z-10 px-4 -mt-64">
           {/* Covo Logo */}
-          <img 
+          <Image 
             src="/covo.svg" 
             alt="Covo" 
+            width={256}
+            height={256}
             className="h-64 w-64 mb-4"
           />
           <h1 
@@ -360,7 +368,7 @@ export default function ConversationsPage() {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 if (firstMessage.trim() && !creating) {
-                  handleStartConversation(e as any);
+                  handleStartConversation(e as React.FormEvent);
                 }
               }
             }}
@@ -371,9 +379,11 @@ export default function ConversationsPage() {
         
         {/* Bottom third with landscape SVG - absolutely positioned */}
         <div className="absolute bottom-0 left-0 right-0 h-1/2 m-0 p-0 z-0">
-          <img 
+          <Image 
             src="/landscape.svg" 
             alt="Landscape" 
+            width={1920}
+            height={1080}
             className="w-full h-full object-cover m-0 p-0"
           />
         </div>

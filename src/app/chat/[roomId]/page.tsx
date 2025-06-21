@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { use } from 'react';
-import { io, Socket } from 'socket.io-client';
+import { io } from 'socket.io-client';
 import Link from 'next/link';
 import { theme, getHeadingStyle } from '@/styles/theme';
 import { Button } from '@/components/ui/Button';
@@ -13,6 +13,7 @@ import { Sidebar } from '@/components/Sidebar';
 import { ConversationOptionsModal } from '@/components/ConversationOptionsModal';
 import { InviteModal } from '@/components/InviteModal';
 import { buildApiUrl, API_ENDPOINTS } from '@/lib/api';
+import Image from 'next/image';
 
 interface Message {
   id: string;
@@ -32,23 +33,37 @@ interface Room {
   created_by: string;
 }
 
+interface User {
+  id: string;
+  username: string;
+  email: string;
+}
+
+interface Invite {
+  id: string;
+  room_id: string;
+  invited_by: string;
+  invited_username: string;
+  status: string;
+  rooms: {
+    name: string;
+  };
+}
+
 export default function ChatPage({ params }: { params: Promise<{ roomId: string }> }) {
   const { roomId } = use(params);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [room, setRoom] = useState<Room | null>(null);
-  const [error, setError] = useState('');
-  const [user, setUser] = useState<any>(null);
-  const [socket, setSocket] = useState<Socket | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [rooms, setRooms] = useState<Room[]>([]);
-  const [invites, setInvites] = useState<any[]>([]);
+  const [invites, setInvites] = useState<Invite[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newRoom, setNewRoom] = useState({ name: '', is_private: true });
   const [creating, setCreating] = useState(false);
   const [modalError, setModalError] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-  const inputRef = useRef<HTMLInputElement>(null);
   const [optionsModalOpen, setOptionsModalOpen] = useState(false);
   const [selectedConversation, setSelectedConversation] = useState<{ id: string; name: string } | null>(null);
   const [optionsLoading, setOptionsLoading] = useState(false);
@@ -66,64 +81,7 @@ export default function ChatPage({ params }: { params: Promise<{ roomId: string 
     scrollToBottom();
   }, [messages]);
 
-  useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (!storedUser) {
-      router.push('/login');
-      return;
-    }
-    setUser(JSON.parse(storedUser));
-    fetchRoom();
-    fetchMessages();
-    fetchRooms();
-    fetchInvites();
-
-    const token = localStorage.getItem('token');
-    const newSocket = io(process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5001', {
-      withCredentials: true,
-      transports: ['websocket', 'polling'],
-      reconnection: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
-      extraHeaders: {
-        Authorization: `Bearer ${token}`
-      }
-    });
-
-    newSocket.on('connect', () => {
-      console.log('Connected to WebSocket');
-      newSocket.emit('join_room', { room_id: roomId });
-    });
-
-    newSocket.on('connect_error', (error) => {
-      console.error('WebSocket connection error:', error);
-      setError('Connection error. Please refresh the page.');
-    });
-
-    newSocket.on('disconnect', (reason) => {
-      console.log('Disconnected:', reason);
-      if (reason === 'io server disconnect') {
-        // Server initiated disconnect, try to reconnect
-        newSocket.connect();
-      }
-    });
-
-    newSocket.on('new_message', (message: Message) => {
-      console.log('Received new message:', message);
-      setMessages(prev => [...prev, message]);
-    });
-
-    setSocket(newSocket);
-
-    return () => {
-      if (newSocket) {
-        newSocket.emit('leave_room', { room_id: roomId });
-        newSocket.disconnect();
-      }
-    };
-  }, [roomId, router]);
-
-  const fetchRoom = async () => {
+  const fetchRoom = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(buildApiUrl(API_ENDPOINTS.ROOM(roomId)), {
@@ -139,12 +97,12 @@ export default function ChatPage({ params }: { params: Promise<{ roomId: string 
       } else {
         router.push('/rooms');
       }
-    } catch (err) {
-      setError('Unable to fetch room details');
+    } catch {
+      console.error('Unable to fetch room details');
     }
-  };
+  }, [roomId, router]);
 
-  const fetchMessages = async () => {
+  const fetchMessages = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(buildApiUrl(API_ENDPOINTS.ROOM_MESSAGES(roomId)), {
@@ -158,12 +116,12 @@ export default function ChatPage({ params }: { params: Promise<{ roomId: string 
         const data = await response.json();
         setMessages(data.reverse());
       }
-    } catch (err) {
-      setError('Unable to fetch messages');
+    } catch {
+      console.error('Unable to fetch messages');
     }
-  };
+  }, [roomId]);
 
-  const fetchRooms = async () => {
+  const fetchRooms = useCallback(async () => {
     try {
       setRoomsLoading(true);
       const token = localStorage.getItem('token');
@@ -181,10 +139,12 @@ export default function ChatPage({ params }: { params: Promise<{ roomId: string 
         const data = await response.json();
         setRooms(data);
       }
-    } catch (err) {} finally {
+    } catch {
+      console.error('Failed to fetch rooms');
+    } finally {
       setRoomsLoading(false);
     }
-  };
+  }, [router]);
 
   const fetchInvites = async () => {
     try {
@@ -199,7 +159,9 @@ export default function ChatPage({ params }: { params: Promise<{ roomId: string 
         const data = await response.json();
         setInvites(data);
       }
-    } catch (err) {}
+    } catch {
+      console.error('Failed to fetch invites');
+    }
   };
 
   const handleAcceptInvite = async (inviteId: string) => {
@@ -216,7 +178,9 @@ export default function ChatPage({ params }: { params: Promise<{ roomId: string 
         fetchRooms();
         fetchInvites();
       }
-    } catch (err) {}
+    } catch {
+      console.error('Failed to accept invite');
+    }
   };
 
   const handleLogout = () => {
@@ -243,12 +207,8 @@ export default function ChatPage({ params }: { params: Promise<{ roomId: string 
 
       if (response.ok) {
         setNewMessage('');
-      } else {
-        const data = await response.json();
-        setError(data.error || 'Failed to send message');
       }
-    } catch (err) {
-      setError('Unable to send message');
+    } catch {
     }
   };
 
@@ -280,7 +240,7 @@ export default function ChatPage({ params }: { params: Promise<{ roomId: string 
         setInviteError(data.error || 'Failed to send invitation');
         setInviteLoading(false);
       }
-    } catch (err) {
+    } catch {
       setInviteError('Unable to send invitation');
       setInviteLoading(false);
     }
@@ -311,7 +271,7 @@ export default function ChatPage({ params }: { params: Promise<{ roomId: string 
         setModalError(data.error || 'Failed to create conversation');
         setCreating(false);
       }
-    } catch (err) {
+    } catch {
       setModalError('Unable to create conversation');
       setCreating(false);
     }
@@ -350,7 +310,7 @@ export default function ChatPage({ params }: { params: Promise<{ roomId: string 
         const data = await response.json();
         setOptionsError(data.error || 'Failed to rename conversation');
       }
-    } catch (err) {
+    } catch {
       setOptionsError('Unable to rename conversation');
     }
     setOptionsLoading(false);
@@ -376,17 +336,71 @@ export default function ChatPage({ params }: { params: Promise<{ roomId: string 
         const data = await response.json();
         setOptionsError(data.error || 'Failed to delete conversation');
       }
-    } catch (err) {
+    } catch {
       setOptionsError('Unable to delete conversation');
     }
     setOptionsLoading(false);
   };
 
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (!storedUser) {
+      router.push('/login');
+      return;
+    }
+    setUser(JSON.parse(storedUser));
+    fetchRoom();
+    fetchMessages();
+    fetchRooms();
+    fetchInvites();
+
+    const token = localStorage.getItem('token');
+    const newSocket = io(process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5001', {
+      withCredentials: true,
+      transports: ['websocket', 'polling'],
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+      extraHeaders: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    newSocket.on('connect', () => {
+      console.log('Connected to WebSocket');
+      newSocket.emit('join_room', { room_id: roomId });
+    });
+
+    newSocket.on('connect_error', (error) => {
+      console.error('WebSocket connection error:', error);
+    });
+
+    newSocket.on('disconnect', (reason) => {
+      console.log('Disconnected:', reason);
+      if (reason === 'io server disconnect') {
+        // Server initiated disconnect, try to reconnect
+        newSocket.connect();
+      }
+    });
+
+    newSocket.on('new_message', (message: Message) => {
+      console.log('Received new message:', message);
+      setMessages(prev => [...prev, message]);
+    });
+
+    return () => {
+      if (newSocket) {
+        newSocket.emit('leave_room', { room_id: roomId });
+        newSocket.disconnect();
+      }
+    };
+  }, [roomId, router, fetchRoom, fetchMessages, fetchRooms]);
+
   if (!room) {
     return (
       <div className="flex h-screen items-center justify-center" style={{ backgroundColor: theme.colors.background.app }}>
         <div className="text-center transition-opacity duration-300 opacity-100">
-          <img src="/loading.svg" alt="Loading" className="h-24 w-24 mx-auto" />
+          <Image src="/loading.svg" alt="Loading" className="h-24 w-24 mx-auto" width={96} height={96} />
         </div>
       </div>
     );

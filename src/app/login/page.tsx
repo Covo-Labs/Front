@@ -36,7 +36,7 @@ export default function LoginPage() {
       } else {
         setError(data.error || 'Login failed');
       }
-    } catch (err) {
+    } catch {
       setError('Unable to connect to the server');
     }
   };
@@ -110,7 +110,7 @@ export default function LoginPage() {
             Sign in
           </button>
           <p className="text-center text-sm text-gray-600">
-            Don't have an account?{' '}
+            Don&apos;t have an account?{' '}
             <Link 
               href="/register" 
               className="hover:text-gray-800 transition-colors"

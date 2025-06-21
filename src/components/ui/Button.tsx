@@ -1,4 +1,3 @@
-import { theme } from '@/styles/theme';
 import { ReactNode, CSSProperties } from 'react';
 
 interface ButtonProps {
