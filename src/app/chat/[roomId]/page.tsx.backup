@@ -72,7 +72,6 @@ export default function ChatPage({ params }: { params: Promise<{ roomId: string 
   const [inviteLoading, setInviteLoading] = useState(false);
   const [inviteError, setInviteError] = useState('');
   const [roomsLoading, setRoomsLoading] = useState(true);
-  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
