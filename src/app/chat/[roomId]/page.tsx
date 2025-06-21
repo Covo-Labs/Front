@@ -362,7 +362,7 @@ export default function ChatPage({ params }: { params: Promise<{ roomId: string 
     
     const newSocket = io(cleanBaseUrl, {
       withCredentials: false, // Changed to false for production
-      transports: ['websocket'], // Force only websocket transport
+      transports: ['polling', 'websocket'], // Allow both polling and websocket
       reconnection: true,
       reconnectionAttempts: 10,
       reconnectionDelay: 1000,
