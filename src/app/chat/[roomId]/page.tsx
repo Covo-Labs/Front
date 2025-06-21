@@ -83,7 +83,6 @@ export default function ChatPage({ params }: { params: Promise<{ roomId: string 
 
   const fetchRoom = useCallback(async () => {
     try {
-      const token = localStorage.getItem('token');
       const response = await fetch(buildApiUrl(API_ENDPOINTS.ROOM(roomId)), {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -104,7 +103,6 @@ export default function ChatPage({ params }: { params: Promise<{ roomId: string 
 
   const fetchMessages = useCallback(async () => {
     try {
-      const token = localStorage.getItem('token');
       const response = await fetch(buildApiUrl(API_ENDPOINTS.ROOM_MESSAGES(roomId)), {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -124,7 +122,6 @@ export default function ChatPage({ params }: { params: Promise<{ roomId: string 
   const fetchRooms = useCallback(async () => {
     try {
       setRoomsLoading(true);
-      const token = localStorage.getItem('token');
       if (!token) {
         router.push('/login');
         return;
@@ -148,7 +145,6 @@ export default function ChatPage({ params }: { params: Promise<{ roomId: string 
 
   const fetchInvites = async () => {
     try {
-      const token = localStorage.getItem('token');
       const response = await fetch(buildApiUrl(API_ENDPOINTS.INVITES), {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -166,7 +162,6 @@ export default function ChatPage({ params }: { params: Promise<{ roomId: string 
 
   const handleAcceptInvite = async (inviteId: string) => {
     try {
-      const token = localStorage.getItem('token');
       const response = await fetch(buildApiUrl(API_ENDPOINTS.INVITE_ACCEPT(inviteId)), {
         method: 'POST',
         headers: {
@@ -194,7 +189,6 @@ export default function ChatPage({ params }: { params: Promise<{ roomId: string 
     if (!newMessage.trim()) return;
 
     try {
-      const token = localStorage.getItem('token');
       const response = await fetch(buildApiUrl(API_ENDPOINTS.ROOM_MESSAGES(roomId)), {
         method: 'POST',
         headers: {
@@ -221,7 +215,6 @@ export default function ChatPage({ params }: { params: Promise<{ roomId: string 
     setInviteLoading(true);
     setInviteError('');
     try {
-      const token = localStorage.getItem('token');
       const response = await fetch(buildApiUrl(API_ENDPOINTS.ROOM_INVITE(roomId)), {
         method: 'POST',
         headers: {
@@ -251,7 +244,6 @@ export default function ChatPage({ params }: { params: Promise<{ roomId: string 
     setModalError('');
     setCreating(true);
     try {
-      const token = localStorage.getItem('token');
       const response = await fetch(buildApiUrl(API_ENDPOINTS.ROOMS), {
         method: 'POST',
         headers: {
@@ -293,7 +285,6 @@ export default function ChatPage({ params }: { params: Promise<{ roomId: string 
     setOptionsLoading(true);
     setOptionsError('');
     try {
-      const token = localStorage.getItem('token');
       const response = await fetch(buildApiUrl(API_ENDPOINTS.ROOM(id)), {
         method: 'PATCH',
         headers: {
@@ -320,7 +311,6 @@ export default function ChatPage({ params }: { params: Promise<{ roomId: string 
     setOptionsLoading(true);
     setOptionsError('');
     try {
-      const token = localStorage.getItem('token');
       const response = await fetch(buildApiUrl(API_ENDPOINTS.ROOM(id)), {
         method: 'DELETE',
         headers: {
@@ -354,7 +344,6 @@ export default function ChatPage({ params }: { params: Promise<{ roomId: string 
     fetchRooms();
     fetchInvites();
 
-    const token = localStorage.getItem('token');
     const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://back-s546.onrender.com';
     // Remove trailing slash to prevent double slashes in Socket.IO connection
     const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
