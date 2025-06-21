@@ -355,7 +355,7 @@ export default function ChatPage({ params }: { params: Promise<{ roomId: string 
     fetchInvites();
 
     const token = localStorage.getItem('token');
-    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5001';
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://back-s546.onrender.com';
     // Remove trailing slash to prevent double slashes in Socket.IO connection
     const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
     console.log('Connecting to WebSocket at:', cleanBaseUrl);

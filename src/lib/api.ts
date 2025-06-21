@@ -1,5 +1,5 @@
 // API configuration
-const rawApiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5001';
+const rawApiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://back-s546.onrender.com';
 export const API_BASE_URL = rawApiBaseUrl.endsWith('/') ? rawApiBaseUrl.slice(0, -1) : rawApiBaseUrl;
 
 // Helper function to build API URLs
