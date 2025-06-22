@@ -163,9 +163,21 @@ export default function ConversationsPage() {
       });
 
       if (response.ok) {
-        setShowCreateModal(false);
-        setNewRoom({ name: '', is_private: true });
-        fetchRooms();
+        const room = await response.json();
+        // Redirect immediately
+        router.push(`/chat/${room.id}`);
+        // Send the first message (do not await)
+        fetch(buildApiUrl(API_ENDPOINTS.ROOM_MESSAGES(room.id)), {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ content: firstMessage })
+        });
+        setFirstMessage('');
+        setCreating(false);
       } else {
         const data = await response.json();
         setError(data.error || 'Failed to create conversation');
@@ -202,8 +214,10 @@ export default function ConversationsPage() {
       });
       if (response.ok) {
         const room = await response.json();
-        // Send the first message
-        await fetch(buildApiUrl(API_ENDPOINTS.ROOM_MESSAGES(room.id)), {
+        // Redirect immediately
+        router.push(`/chat/${room.id}`);
+        // Send the first message (do not await)
+        fetch(buildApiUrl(API_ENDPOINTS.ROOM_MESSAGES(room.id)), {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -214,7 +228,6 @@ export default function ConversationsPage() {
         });
         setFirstMessage('');
         setCreating(false);
-        router.push(`/chat/${room.id}`);
       } else {
         const data = await response.json();
         setError(data.error || 'Failed to create conversation');

@@ -43,10 +43,10 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center" style={{ 
-      background: `linear-gradient(to bottom right, ${theme.colors.primary.light}, ${theme.colors.background.app})` 
+      background: theme.colors.background.app
     }}>
-      <div className="max-w-md w-full space-y-8 p-10 bg-white rounded-2xl shadow-xl">
-        <div className="text-center">
+      <div className="w-full max-w-md space-y-8 p-8 md:p-12">
+        <div className="text-center mb-8">
           <h2 
             className="text-gray-900 mb-2"
             style={getHeadingStyle(1)}
@@ -67,7 +67,7 @@ export default function LoginPage() {
                 id="email"
                 type="email"
                 required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors bg-white"
                 placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -81,7 +81,7 @@ export default function LoginPage() {
                 id="password"
                 type="password"
                 required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors bg-white"
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}

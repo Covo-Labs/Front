@@ -460,6 +460,21 @@ export default function ChatPage({ params }: { params: Promise<{ roomId: string 
     };
   }, [roomId, router, fetchRoom, fetchMessages, fetchRooms, fetchInvites]);
 
+  // Show thinking animation if last message is from user and no AI message yet
+  useEffect(() => {
+    if (messages.length > 0) {
+      const lastMsg = messages[messages.length - 1];
+      const hasPendingAI = !messages.some(m => m.user_id === '00000000-0000-0000-0000-000000000000' && m.created_at > lastMsg.created_at);
+      if (lastMsg.user_id !== '00000000-0000-0000-0000-000000000000' && hasPendingAI) {
+        setIsThinking(true);
+      } else {
+        setIsThinking(false);
+      }
+    } else {
+      setIsThinking(false);
+    }
+  }, [messages]);
+
   if (!room) {
     return (
       <div className="flex h-screen items-center justify-center" style={{ backgroundColor: theme.colors.background.app }}>
