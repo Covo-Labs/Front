@@ -72,6 +72,7 @@ export default function ChatPage({ params }: { params: Promise<{ roomId: string 
   const [inviteError, setInviteError] = useState('');
   const [roomsLoading, setRoomsLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [isThinking, setIsThinking] = useState(false);
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
   const toggleSidebar = () => {
@@ -204,23 +205,38 @@ export default function ChatPage({ params }: { params: Promise<{ roomId: string 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim()) return;
+    const trimmedMessage = newMessage.trim();
+    if (!trimmedMessage || !user) return;
+
+    const optimisticMessage: Message = {
+      id: Date.now().toString(),
+      content: trimmedMessage,
+      created_at: new Date().toISOString(),
+      user_id: user.id,
+      users: {
+        username: user.username,
+      },
+    };
+
+    setMessages(prev => [...prev, optimisticMessage]);
+    setNewMessage('');
+    setIsThinking(true);
 
     try {
-      const response = await fetch(buildApiUrl(API_ENDPOINTS.ROOM_MESSAGES(roomId)), {
+      await fetch(buildApiUrl(API_ENDPOINTS.ROOM_MESSAGES(roomId)), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ content: newMessage })
+        body: JSON.stringify({ content: trimmedMessage })
       });
-
-      if (response.ok) {
-        setNewMessage('');
-      }
-    } catch {
+    } catch (error) {
+      console.error('Failed to send message:', error);
+      // Optional: handle message failure, e.g., show an error icon
+      setIsThinking(false);
+      setMessages(prev => prev.filter(m => m.id !== optimisticMessage.id));
     }
   };
 
@@ -414,7 +430,22 @@ export default function ChatPage({ params }: { params: Promise<{ roomId: string 
 
     newSocket.on('new_message', (message: Message) => {
       console.log('Received new message:', message);
-      setMessages(prev => [...prev, message]);
+      if (message.user_id === '00000000-0000-0000-0000-000000000000') {
+        setIsThinking(false);
+        setMessages(prev => [...prev, message]);
+      } else {
+        setMessages(prev => {
+          const optimisticIndex = prev.findIndex(
+            m => m.user_id === message.user_id && m.content === message.content && !m.id.includes('-')
+          );
+          if (optimisticIndex > -1) {
+            const newMessages = [...prev];
+            newMessages[optimisticIndex] = message;
+            return newMessages;
+          }
+          return [...prev, message];
+        });
+      }
     });
 
     newSocket.on('error', (error) => {
@@ -503,6 +534,19 @@ export default function ChatPage({ params }: { params: Promise<{ roomId: string 
                 userId={message.user_id}
               />
             ))}
+            {isThinking && (
+              <Message
+                key="thinking"
+                id="thinking"
+                content=""
+                username="Covo"
+                timestamp=""
+                isOwnMessage={false}
+                isAI={true}
+                loading={true}
+                userId="00000000-0000-0000-0000-000000000000"
+              />
+            )}
             <div ref={messagesEndRef} />
           </div>
 

@@ -1,15 +1,18 @@
 import { theme } from '@/styles/theme';
+import React from 'react';
 
 interface MessageProps {
-  content: string;
+  content: React.ReactNode;
   username: string;
   timestamp: string;
   isOwnMessage: boolean;
   isAI?: boolean;
   userId?: string;
+  id?: string;
+  loading?: boolean;
 }
 
-export function Message({ content, username, timestamp, isOwnMessage, isAI = false, userId }: MessageProps) {
+export function Message({ content, username, timestamp, isOwnMessage, isAI = false, userId, loading = false }: MessageProps) {
   // Get a consistent color for each user based on their ID
   const getUserColor = (id: string) => {
     if (!id) return theme.colors.background.message.users[0];
@@ -30,11 +33,21 @@ export function Message({ content, username, timestamp, isOwnMessage, isAI = fal
             <span className="text-sm font-medium text-gray-800">
               Covo
             </span>
-            <span className="text-xs text-gray-500">
-              {new Date(timestamp).toLocaleTimeString()}
-            </span>
+            {!loading && timestamp && (
+              <span className="text-xs text-gray-500">
+                {new Date(timestamp).toLocaleTimeString()}
+              </span>
+            )}
           </div>
-          <p className="whitespace-pre-wrap text-gray-800">{content}</p>
+          {loading ? (
+            <div className="flex items-center justify-center space-x-1 py-2">
+              <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse"></div>
+              <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+              <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+            </div>
+          ) : (
+            <div className="whitespace-pre-wrap text-gray-800">{content}</div>
+          )}
         </div>
       </div>
     );
@@ -55,11 +68,13 @@ export function Message({ content, username, timestamp, isOwnMessage, isAI = fal
           <span className="text-sm font-medium">
             {isOwnMessage ? 'You' : username}
           </span>
-          <span className="text-xs opacity-75">
-            {new Date(timestamp).toLocaleTimeString()}
-          </span>
+          {timestamp && (
+            <span className="text-xs opacity-75">
+              {new Date(timestamp).toLocaleTimeString()}
+            </span>
+          )}
         </div>
-        <p className="whitespace-pre-wrap">{content}</p>
+        <div className="whitespace-pre-wrap">{content}</div>
       </div>
     </div>
   );
