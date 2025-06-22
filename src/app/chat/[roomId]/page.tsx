@@ -4,8 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { use } from 'react';
 import { io } from 'socket.io-client';
-import Link from 'next/link';
-import { theme, getHeadingStyle } from '@/styles/theme';
+import { theme } from '@/styles/theme';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Message } from '@/components/chat/Message';
@@ -118,7 +117,7 @@ export default function ChatPage({ params }: { params: Promise<{ roomId: string 
     } catch {
       console.error('Unable to fetch room details');
     }
-  }, [roomId, router]);
+  }, [roomId, router, token]);
 
   const fetchMessages = useCallback(async () => {
     try {
@@ -136,7 +135,7 @@ export default function ChatPage({ params }: { params: Promise<{ roomId: string 
     } catch {
       console.error('Unable to fetch messages');
     }
-  }, [roomId]);
+  }, [roomId, token]);
 
   const fetchRooms = useCallback(async () => {
     try {
@@ -160,9 +159,9 @@ export default function ChatPage({ params }: { params: Promise<{ roomId: string 
     } finally {
       setRoomsLoading(false);
     }
-  }, [router]);
+  }, [router, token]);
 
-  const fetchInvites = async () => {
+  const fetchInvites = useCallback(async () => {
     try {
       const response = await fetch(buildApiUrl(API_ENDPOINTS.INVITES), {
         headers: {
@@ -177,7 +176,7 @@ export default function ChatPage({ params }: { params: Promise<{ roomId: string 
     } catch {
       console.error('Failed to fetch invites');
     }
-  };
+  }, [token]);
 
   const handleAcceptInvite = async (inviteId: string) => {
     try {
@@ -428,7 +427,7 @@ export default function ChatPage({ params }: { params: Promise<{ roomId: string 
         newSocket.disconnect();
       }
     };
-  }, [roomId, router, fetchRoom, fetchMessages, fetchRooms]);
+  }, [roomId, router, fetchRoom, fetchMessages, fetchRooms, fetchInvites]);
 
   if (!room) {
     return (
@@ -470,8 +469,7 @@ export default function ChatPage({ params }: { params: Promise<{ roomId: string 
           <div className="flex items-center justify-between">
             <div>
               <h1 
-                className="text-gray-900"
-                style={getHeadingStyle(4)}
+                className="text-gray-900 text-2xl font-bold"
               >
                 {room.name}
               </h1>
@@ -548,8 +546,7 @@ export default function ChatPage({ params }: { params: Promise<{ roomId: string 
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
             <h2 
-              className="text-gray-900 mb-4"
-              style={getHeadingStyle(2)}
+              className="text-gray-900 mb-4 text-3xl font-bold"
             >
               New Conversation
             </h2>

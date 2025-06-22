@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import Image from 'next/image';
-import { theme, getHeadingStyle } from '@/styles/theme';
+import { theme } from '@/styles/theme';
 
 interface Room {
   id: string;
