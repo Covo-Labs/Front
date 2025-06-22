@@ -72,7 +72,12 @@ export default function ChatPage({ params }: { params: Promise<{ roomId: string 
   const [inviteLoading, setInviteLoading] = useState(false);
   const [inviteError, setInviteError] = useState('');
   const [roomsLoading, setRoomsLoading] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -81,6 +86,19 @@ export default function ChatPage({ params }: { params: Promise<{ roomId: string 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setSidebarOpen(false);
+      } else {
+        setSidebarOpen(true);
+      }
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const fetchRoom = useCallback(async () => {
     try {
@@ -433,9 +451,22 @@ export default function ChatPage({ params }: { params: Promise<{ roomId: string 
         onShowCreateModal={() => setShowCreateModal(true)}
         onOpenOptions={handleOpenOptions}
         loading={roomsLoading}
+        open={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
       />
-      <div className="flex-1 flex flex-col">
-        <div className="border-b border-gray-200 px-6 py-4">
+      <div className="flex-1 flex flex-col relative">
+        {!sidebarOpen && (
+          <button
+            onClick={toggleSidebar}
+            className="absolute top-4 left-4 p-2 text-gray-600 hover:text-gray-900 rounded-lg transition-colors z-20"
+            aria-label="Open menu"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        )}
+        <div className={`py-4 transition-all ${!sidebarOpen ? 'pl-16 pr-6' : 'px-6'}`}>
           <div className="flex items-center justify-between">
             <div>
               <h1 
@@ -457,57 +488,50 @@ export default function ChatPage({ params }: { params: Promise<{ roomId: string 
                   <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z" />
                 </svg>
               </Button>
-              <Link
-                href="/rooms"
-                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                title="Back to conversations"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
-                </svg>
-              </Link>
             </div>
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6 space-y-4">
-          {messages.map((message) => (
-            <Message
-              key={message.id}
-              content={message.content}
-              username={message.users.username}
-              timestamp={message.created_at}
-              isOwnMessage={message.user_id === user?.id}
-              isAI={message.user_id === '00000000-0000-0000-0000-000000000000'}
-              userId={message.user_id}
-            />
-          ))}
-          <div ref={messagesEndRef} />
-        </div>
+        <div className="w-full max-w-4xl mx-auto flex-1 flex flex-col min-h-0">
+          <div className="flex-1 overflow-y-auto p-6 space-y-4">
+            {messages.map((message) => (
+              <Message
+                key={message.id}
+                content={message.content}
+                username={message.users.username}
+                timestamp={message.created_at}
+                isOwnMessage={message.user_id === user?.id}
+                isAI={message.user_id === '00000000-0000-0000-0000-000000000000'}
+                userId={message.user_id}
+              />
+            ))}
+            <div ref={messagesEndRef} />
+          </div>
 
-        <div className="border-t border-gray-200 p-4">
-          <form onSubmit={handleSubmit} className="flex space-x-4">
-            <Input
-              type="text"
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              placeholder="Type a message..."
-              className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-gray-50 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 text-base mb-4 text-gray-900 placeholder-gray-500"
-            />
-            <Button
-              type="submit"
-              disabled={!newMessage.trim()}
-              className={`flex items-center justify-center h-12 w-12 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-200 border-0
-                ${!newMessage.trim() ? 'opacity-50 cursor-not-allowed' : ''}
-              `}
-              style={{ backgroundColor: theme.colors.background.message.user, color: '#fff' }}
-              variant="primary"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 10.5l16.5-5.5-5.5 16.5-2.5-7-7-2.5z" />
-              </svg>
-            </Button>
-          </form>
+          <div className="p-4">
+            <form onSubmit={handleSubmit} className="flex space-x-4">
+              <Input
+                type="text"
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                placeholder="Type a message..."
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-gray-50 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 text-base mb-4 text-gray-900 placeholder-gray-500"
+              />
+              <Button
+                type="submit"
+                disabled={!newMessage.trim()}
+                className={`flex items-center justify-center h-12 w-12 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-200 border-0
+                  ${!newMessage.trim() ? 'opacity-50 cursor-not-allowed' : ''}
+                `}
+                style={{ backgroundColor: theme.colors.background.message.user, color: '#fff' }}
+                variant="primary"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 10.5l16.5-5.5-5.5 16.5-2.5-7-7-2.5z" />
+                </svg>
+              </Button>
+            </form>
+          </div>
         </div>
       </div>
       <ConversationOptionsModal

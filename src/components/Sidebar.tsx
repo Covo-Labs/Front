@@ -66,36 +66,42 @@ export function Sidebar({ rooms, invites, user, onAcceptInvite, onLogout, onShow
       {isOpen && (
         <div 
           className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
-          onClick={() => {
-            if (onClose) {
-              onClose();
-            } else {
-              setInternalOpen(false);
-            }
-          }}
+          onClick={onClose}
         />
       )}
-      
-      {/* Sidebar */}
       <div className={`
-        fixed md:relative inset-y-0 left-0 z-50
-        transform transition-transform duration-300 ease-in-out
-        ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-        w-80 flex flex-col border-r border-gray-100
-        ${!isOpen ? 'md:hidden' : ''}
+        h-screen flex flex-col
+        fixed md:relative
+        z-50
+        transition-all duration-300 ease-in-out
+        border-r border-gray-200
+        overflow-hidden
+        ${isOpen ? 'w-72' : 'w-0'}
       `} style={{ backgroundColor: theme.colors.background.app }}>
-        <div className="p-6 border-b border-gray-100" style={{ backgroundColor: theme.colors.background.app }}>
+        <div className="p-6" style={{ backgroundColor: theme.colors.background.app }}>
           <div className="flex items-center justify-between mb-6">
-            <h1 
-              className="text-gray-900 tracking-tight"
-              style={getHeadingStyle(2)}
-            >
-              Conversations
-            </h1>
-            <div className="flex items-center space-x-2">
+            <Link
+              href={`/rooms`}>
+              <svg
+                width="30"
+                height="30"
+                viewBox="0 0 264.58333 264.58333"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="m 91.926066,99.035695 c -0.416763,23.740255 -3.525568,64.668965 3.515975,74.921495 7.526099,10.95804 20.959809,4.2855 26.957909,10.49202 7.80984,8.08122 4.63704,24.00091 5.75633,31.01166 0.86472,5.41617 4.27024,11.3763 11.1334,12.11578 5.78444,0.62326 15.58083,1.30189 15.50979,-19.85188 -0.0513,-15.3031 -1.55689,-37.44166 -7.78627,-42.78995 -11.20309,-9.61854 -22.07022,5.21707 -27.15131,-19.21497 -2.15648,-10.3693 0.28464,-68.82443 0.14436,-77.866061 -0.3398,-21.901284 4.66006,-30.982293 14.90077,-30.783736 9.27799,0.179894 13.01285,7.559334 12.90331,31.434368 -0.0272,5.94865 -0.48783,22.945314 -0.69561,48.736809 -0.14124,17.52348 5.42401,22.11749 11.7512,22.72312 9.62278,0.92107 15.58196,-6.05829 15.74508,-21.21469 0.20234,-18.799783 0.38594,-43.438781 0.38594,-43.438781"
+                  fill="none"
+                  stroke="#44302d"
+                  strokeWidth="16"
+                  strokeLinecap="round"
+                >
+                </path>
+              </svg>
+            </Link>
+            <div className="flex items-center space-x-">
               <button
                 onClick={onShowCreateModal}
-                className="p-2 text-gray-400 hover:text-indigo-600 rounded-lg transition-colors"
+                className="p-1 text-gray-400 hover:text-indigo-600 rounded-lg transition-colors"
                 aria-label="New conversation"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -107,8 +113,11 @@ export function Sidebar({ rooms, invites, user, onAcceptInvite, onLogout, onShow
                 className="p-2 text-gray-400 hover:text-indigo-600 rounded-lg transition-colors"
                 aria-label="Toggle sidebar"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                  <path d="M4 4m0 2a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z" />
+                  <path d="M9 4v16" />
+                  <path d="M15 10l-2 2l2 2" />
                 </svg>
               </button>
             </div>
@@ -122,7 +131,7 @@ export function Sidebar({ rooms, invites, user, onAcceptInvite, onLogout, onShow
         <div className="flex-1 overflow-y-auto">
           {/* Invitations section */}
           {invites.length > 0 && (
-            <div className="border-b border-gray-100 bg-gray-50">
+            <div className="bg-gray-50">
               <div className="px-4 py-2">
                 <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Invitations</h2>
               </div>
@@ -150,7 +159,7 @@ export function Sidebar({ rooms, invites, user, onAcceptInvite, onLogout, onShow
           ) : (
             <div className="transition-opacity duration-300">
               {rooms.map((room) => (
-                <div key={room.id} className="group flex items-center px-6 py-4 hover:opacity-20 transition-opacity border-b border-gray-50">
+                <div key={room.id} className="group flex items-center px-6 py-2 hover:opacity-20 transition-opacity">
                   <Link
                     href={`/chat/${room.id}`}
                     className="flex-1 min-w-0"
@@ -189,7 +198,7 @@ export function Sidebar({ rooms, invites, user, onAcceptInvite, onLogout, onShow
             </div>
           )}
         </div>
-        <div className="p-6 border-t border-gray-100" style={{ backgroundColor: theme.colors.background.app }}>
+        <div className="p-6" style={{ backgroundColor: theme.colors.background.app }}>
           <div className="flex items-center space-x-3">
             <div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center">
               <span className="text-indigo-600 font-bold">{user?.username?.charAt(0).toUpperCase()}</span>

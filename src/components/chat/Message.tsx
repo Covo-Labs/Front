@@ -25,16 +25,16 @@ export function Message({ content, username, timestamp, isOwnMessage, isAI = fal
   if (isAI) {
     return (
       <div className="flex justify-center my-4">
-        <div className="max-w-[85%] text-center">
+        <div className="w-full rounded-lg px-4 py-2 bg-gray-100 text-center">
           <div className="flex items-center justify-center space-x-2 mb-1">
-            <span className="text-sm font-medium text-emerald-500">
+            <span className="text-sm font-medium text-gray-800">
               Covo
             </span>
             <span className="text-xs text-gray-500">
               {new Date(timestamp).toLocaleTimeString()}
             </span>
           </div>
-          <p className="text-sm whitespace-pre-wrap text-gray-700">{content}</p>
+          <p className="whitespace-pre-wrap text-gray-800">{content}</p>
         </div>
       </div>
     );
@@ -59,7 +59,7 @@ export function Message({ content, username, timestamp, isOwnMessage, isAI = fal
             {new Date(timestamp).toLocaleTimeString()}
           </span>
         </div>
-        <p className="text-sm whitespace-pre-wrap">{content}</p>
+        <p className="whitespace-pre-wrap">{content}</p>
       </div>
     </div>
   );

@@ -55,7 +55,7 @@ export default function ConversationsPage() {
   const [selectedConversation, setSelectedConversation] = useState<{ id: string; name: string } | null>(null);
   const [optionsLoading, setOptionsLoading] = useState(false);
   const [optionsError, setOptionsError] = useState('');
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [roomsLoading, setRoomsLoading] = useState(true);
 
   const toggleSidebar = () => {
@@ -102,26 +102,6 @@ export default function ConversationsPage() {
     fetchRooms();
     fetchInvites();
   }, [router, fetchRooms]);
-
-  // Handle responsive state
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth < 768) {
-        setSidebarOpen(false);
-      } else {
-        // On desktop, keep the current state (don't auto-open)
-        // This allows users to close it and keep it closed
-      }
-    };
-
-    // Set initial state based on screen size
-    if (window.innerWidth < 768) {
-      setSidebarOpen(false);
-    }
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   const fetchInvites = async () => {
     try {
@@ -342,7 +322,7 @@ export default function ConversationsPage() {
         )}
 
         {/* Centered form */}
-        <form onSubmit={handleStartConversation} className="w-full max-w-lg mx-auto flex flex-col items-center relative z-10 px-4 -mt-64">
+        <form onSubmit={handleStartConversation} className="w-full max-w-lg mx-auto flex flex-col items-center relative z-10 px-4 -mt-50 md:-mt-32">
           {/* Covo Logo */}
           <Image 
             src="/covo.svg" 

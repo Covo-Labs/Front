@@ -35,9 +35,9 @@ export function Button({
       ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
     `,
     secondary: `
-      bg-white text-gray-700 border border-gray-300
-      hover:bg-gray-50
-      focus:ring-gray-500
+      bg-transparent text-gray-600 
+      hover:bg-gray-100
+      focus:ring-indigo-500
       disabled:opacity-50 disabled:cursor-not-allowed
       ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
     `,
